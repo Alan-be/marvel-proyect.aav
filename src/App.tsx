@@ -1,35 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import Navbar from "../src/components/Navbar/Navbar.tsx";
+import SearchBar from "./components/Searchbar/Searchbar.tsx";
+import "./App.css";
+import HeroGrid from "./components/HeroGrid/HeroGrid.tsx";
 
+
+interface Hero {
+  name: string;
+  description: string;
+}
 function App() {
-  const [count, setCount] = useState(0)
+
+  //funciones para darkmode con tailwind
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (darkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
+
+  // info dummy
+  const heroes: Hero[] = [
+    { name: 'Hero 1', description: 'Description of hero 1' },
+    { name: 'Hero 2', description: 'Description of hero 2' },
+    { name: 'Hero 3', description: 'Description of hero 3' },
+    { name: 'Hero 4', description: 'Description of hero 3' },
+    { name: 'Hero 5', description: 'Description of hero 3' },
+    { name: 'Hero 6', description: 'Description of hero 3' },
+  ];
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div
+      className={`min-h-screen ${
+        darkMode ? "dark" : "white"
+      } bg-gradient-to-br from-gray-100 to-gray-300 dark:from-gray-800 dark:to-gray-900`}
+    >
+      <div className="mx-auto p-4 container">
+        <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <SearchBar />
+        <HeroGrid heroes={heroes}/>
+
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
