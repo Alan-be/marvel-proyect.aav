@@ -31,8 +31,6 @@ export const fetchHeroes = async ({offset = 0, name = ''}: FetchHeroesParams) =>
     try {
         
         const response = await axios.get(import.meta.env.VITE_URL,{params})
-
-        console.log(response);
         
         return response.data.data.results
         
