@@ -9,6 +9,7 @@ interface thumbnailPrototype {
 }
 
 interface Hero {
+  id: string
   name: string;
   description?: string;
   thumbnail: thumbnailPrototype;
