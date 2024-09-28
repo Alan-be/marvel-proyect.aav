@@ -1,60 +1,94 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeroCard from '../HeroCard/HeroCard.tsx';
+import CardLoading from '../CardLoading/CardLoading.tsx';
+import { fetchHeroes } from '../../services/api.ts';
+
+interface thumbnailPrototype {
+  path: string;
+  extension: string;
+}
 
 interface Hero {
   name: string;
   description?: string;
+  thumbnail: thumbnailPrototype;
 }
 
 interface HeroGridProps {
-  heroes: Hero[];
+  searchTerm: string;
+  offset: number;
+  setOffset: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const HeroGrid: React.FC<HeroGridProps> = ({ heroes }) => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const heroesPerPage = 3;
+const HeroGrid: React.FC<HeroGridProps> = ({ searchTerm, offset, setOffset }) => {
+  const [heroes, setHeroes] = useState<Hero[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasMoreHeroes, setHasMoreHeroes] = useState(true); 
 
+  const loadHeroes = async () => {
+    setLoading(true);
+    const fetchedHeroes = await fetchHeroes({ offset, name: searchTerm });
+    
+    if (fetchedHeroes.length < 6) {
+      setHasMoreHeroes(false); 
+    } else {
+      setHasMoreHeroes(true); 
+    }
 
-  const indexOfLastHero = currentPage * heroesPerPage;
-  const indexOfFirstHero = indexOfLastHero - heroesPerPage;
-  const currentHeroes = heroes.slice(indexOfFirstHero, indexOfLastHero);
+    setHeroes(fetchedHeroes);
+    setLoading(false);
+  };
 
-  const totalPages = Math.ceil(heroes.length / heroesPerPage);
+  useEffect(() => {
+    loadHeroes();
+  }, [offset, searchTerm]);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+    if (hasMoreHeroes) {
+      setOffset(prevOffset => prevOffset + 6); 
     }
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+    if (offset > 0) {
+      setOffset(prevOffset => prevOffset - 6); 
     }
   };
 
   return (
     <div>
-      <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        {currentHeroes.map((hero, i) => (
-          <HeroCard key={i} hero={hero} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          {Array(6)
+            .fill(0)
+            .map((_, i) => (
+              <CardLoading key={i} />
+            ))}
+        </div>
+      ) : (
+        <div className="gap-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-8">
+          {heroes.map((hero, i) => (
+            <HeroCard key={i} hero={hero} />
+          ))}
+        </div>
+      )}
+
       <nav className="flex justify-center items-center space-x-2">
         <button
           onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className="bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 px-3 py-1 rounded-md text-gray-800 dark:text-white transition-colors duration-200"
+          disabled={offset === 0} 
+          className={`bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 px-3 py-1 rounded-md text-gray-800 dark:text-white transition-colors duration-200 ${
+            offset === 0 ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           Previous
         </button>
-        <span className="bg-white dark:bg-gray-800 px-3 py-1 rounded-md text-gray-800 dark:text-white">
-          {currentPage} of {totalPages}
-        </span>
         <button
           onClick={handleNextPage}
-          disabled={currentPage === totalPages}
-          className="bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 px-3 py-1 rounded-md text-gray-800 dark:text-white transition-colors duration-200"
+          disabled={!hasMoreHeroes} 
+          className={`bg-white hover:bg-gray-100 dark:hover:bg-gray-700 dark:bg-gray-800 px-3 py-1 rounded-md text-gray-800 dark:text-white transition-colors duration-200 ${
+            !hasMoreHeroes ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
           Next
         </button>

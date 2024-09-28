@@ -1,46 +1,19 @@
-import { useEffect, useState } from "react";
 import Navbar from "../src/components/Navbar/Navbar.tsx";
 import SearchBar from "./components/Searchbar/Searchbar.tsx";
 import "./App.css";
 import HeroGrid from "./components/HeroGrid/HeroGrid.tsx";
+import { useDarkMode } from "./hooks/useDarkMode.ts";
+import { useState } from "react";
 
-
-interface Hero {
-  name: string;
-  description: string;
-}
 function App() {
+  const { darkMode, toggleDarkMode } = useDarkMode();
+  const [searchTerm, setSearchTerm] = useState<string>(""); 
+  const [offset, setOffset] = useState<number>(0);
 
-  //funciones para darkmode con tailwind
-  const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+  const handleSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+    setOffset(0); 
   };
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    if (darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('darkMode', JSON.stringify(darkMode));
-  }, [darkMode]);
-
-
-  // info dummy
-  const heroes: Hero[] = [
-    { name: 'Hero 1', description: 'Description of hero 1' },
-    { name: 'Hero 2', description: 'Description of hero 2' },
-    { name: 'Hero 3', description: 'Description of hero 3' },
-    { name: 'Hero 4', description: 'Description of hero 3' },
-    { name: 'Hero 5', description: 'Description of hero 3' },
-    { name: 'Hero 6', description: 'Description of hero 3' },
-  ];
 
   return (
     <div
@@ -50,9 +23,8 @@ function App() {
     >
       <div className="mx-auto p-4 container">
         <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-        <SearchBar />
-        <HeroGrid heroes={heroes}/>
-
+        <SearchBar onSearch={handleSearch} />
+        <HeroGrid searchTerm={searchTerm} offset={offset} setOffset={setOffset} />
       </div>
     </div>
   );
